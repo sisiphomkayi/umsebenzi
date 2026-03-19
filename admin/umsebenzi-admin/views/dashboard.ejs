@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard - Umsebenzi Admin</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; display: flex; }
+    .sidebar { width: 240px; background: #0D4A28; min-height: 100vh; padding: 20px 0; position: fixed; }
+    .sidebar .logo { text-align: center; padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar .logo h2 { color: white; font-size: 18px; letter-spacing: 3px; }
+    .sidebar .logo span { display: block; width: 40px; height: 2px; background: #F5A623; margin: 6px auto; }
+    .sidebar a { display: block; padding: 14px 24px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 14px; transition: 0.2s; }
+    .sidebar a:hover, .sidebar a.active { background: rgba(255,255,255,0.1); color: white; border-left: 3px solid #F5A623; }
+    .sidebar a span { margin-right: 10px; }
+    .main { margin-left: 240px; padding: 30px; width: calc(100% - 240px); }
+    .header { margin-bottom: 30px; }
+    .header h1 { font-size: 24px; color: #1A1A1A; }
+    .header p { color: #888; font-size: 14px; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+    .stat-card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+    .stat-card .label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+    .stat-card .value { font-size: 32px; font-weight: 900; color: #1A6B3C; margin: 8px 0; }
+    .stat-card .sub { font-size: 12px; color: #aaa; }
+    .pending-badge { background: #F5A623; color: white; padding: 2px 8px; border-radius: 20px; font-size: 12px; margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="logo">
+      <h2>UMSEBENZI</h2>
+      <span></span>
+      <p style="color:rgba(255,255,255,0.5);font-size:11px;">Admin Panel</p>
+    </div>
+    <a href="/dashboard" class="active"><span>📊</span>Dashboard</a>
+    <a href="/pending"><span>⏳</span>Pending Approvals <span class="pending-badge"><%= stats.pending_approvals || 0 %></span></a>
+    <a href="/users"><span>👥</span>All Users</a>
+    <a href="/logout"><span>🚪</span>Logout</a>
+  </div>
+  <div class="main">
+    <div class="header">
+      <h1>Dashboard Overview</h1>
+      <p>Welcome back, Super Admin! Here's what's happening on Umsebenzi.</p>
+    </div>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="label">Total Workers</div>
+        <div class="value"><%= stats.total_workers || 0 %></div>
+        <div class="sub">Registered workers</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total Clients</div>
+        <div class="value"><%= stats.total_clients || 0 %></div>
+        <div class="sub">Individual clients</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total Jobs</div>
+        <div class="value"><%= stats.total_jobs || 0 %></div>
+        <div class="sub"><%= stats.completed_jobs || 0 %> completed</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Revenue</div>
+        <div class="value" style="font-size:24px"><%= stats.total_revenue || 'R0.00' %></div>
+        <div class="sub">Platform commission</div>
+      </div>
+    </div>
+    <div class="stat-card" style="max-width:400px">
+      <div class="label">Pending Approvals</div>
+      <div class="value" style="color:#F5A623"><%= stats.pending_approvals || 0 %></div>
+      <div class="sub">Users waiting for approval</div>
+      <a href="/pending" style="display:inline-block;margin-top:12px;padding:8px 16px;background:#1A6B3C;color:white;border-radius:8px;text-decoration:none;font-size:13px;">Review Now →</a>
+    </div>
+  </div>
+</body>
+</html>
