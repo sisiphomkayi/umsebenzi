@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createJob, getNoticeboardJobs, getJobsBySkill, getJobById, getNearbyWorkers, requestWorker, respondToJobRequest, getMyJobRequests } = require('../controllers/jobsController');
+const { createJob, applyForJob, getNoticeboardJobs, getJobsBySkill, getJobById, getNearbyWorkers, requestWorker, respondToJobRequest, getMyJobRequests } = require('../controllers/jobsController');
 const { protect } = require('../middleware/auth');
 
 router.get('/noticeboard', getNoticeboardJobs);
@@ -12,4 +12,4 @@ router.post('/', protect, createJob);
 router.post('/request-worker', protect, requestWorker);
 router.put('/requests/:id/respond', protect, respondToJobRequest);
 
-module.exports = router;
+module.exports = router;router.post('/apply', protect, applyForJob);

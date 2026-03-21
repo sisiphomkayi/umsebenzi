@@ -143,4 +143,21 @@ const getMyJobRequests = async (req, res) => {
   }
 };
 
-module.exports = { createJob, getNoticeboardJobs, getJobsBySkill, getJobById, getNearbyWorkers, requestWorker, respondToJobRequest, getMyJobRequests };
+const applyForJob = async (req, res) => {
+  try {
+    const { job_id } = req.body;
+    if (!job_id) return res.status(400).json({ success: false, message: 'Please provide job_id' });
+    const job = await pool.query('SELECT * FROM jobs WHERE id = $1 AND status = $2', [job_id, 'open']);
+    if (job.rows.length === 0) return res.status(404).json({ success: false, message: 'Job not found or already taken' });
+    const existing = await pool.query('SELECT * FROM job_requests WHERE job_id = $1 AND worker_id = $2', [job_id, req.user.id]);
+    if (existing.rows.length > 0) return res.status(400).json({ success: false, message: 'You already applied for this job' });
+    const request = await pool.query(
+      'INSERT INTO job_requests (job_id, worker_id, client_id, status, payment_status) VALUES ($1,$2,$3,$4,$5) RETURNING *',
+      [job_id, req.user.id, job.rows[0].posted_by, 'pending', 'pending']
+    );
+    res.status(201).json({ success: true, message: 'Application submitted successfully!', request: request.rows[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+module.exports = { createJob, getNoticeboardJobs, getJobsBySkill, getJobById, getNearbyWorkers, requestWorker, respondToJobRequest, getMyJobRequests, applyForJob };

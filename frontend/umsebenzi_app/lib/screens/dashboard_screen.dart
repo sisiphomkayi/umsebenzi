@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import 'post_job_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Map<String, dynamic> user;
@@ -32,6 +33,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<void> _applyForJob(String jobId) async {
+    final result = await ApiService.applyForJob(jobId);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result['success'] == true
+                ? 'Application sent successfully!'
+                : result['message'] ?? 'Error applying for job',
+          ),
+          backgroundColor: result['success'] == true
+              ? const Color(0xFF1A6B3C)
+              : Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,6 +60,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
           : _currentIndex == 1
           ? _buildJobs()
           : _buildProfile(),
+      floatingActionButton: widget.user['user_type'] != 'worker'
+          ? FloatingActionButton.extended(
+              onPressed: () async {
+                final posted = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PostJobScreen()),
+                );
+                if (posted == true) _loadJobs();
+              },
+              backgroundColor: const Color(0xFF1A6B3C),
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text(
+                'Post Job',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            )
+          : null,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (i) => setState(() => _currentIndex = i),
@@ -125,7 +164,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            // Wallet card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -175,9 +213,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              '📌 Noticeboard',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '📌 Noticeboard',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Color(0xFF1A6B3C)),
+                  onPressed: () {
+                    setState(() => _loadingJobs = true);
+                    _loadJobs();
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             if (_loadingJobs)
@@ -305,6 +355,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ],
                         ),
+                        if (widget.user['user_type'] == 'worker') ...[
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () => _applyForJob(job['id']),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF1A6B3C),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                                elevation: 0,
+                              ),
+                              child: const Text(
+                                'Apply for this Job',
+                                style: TextStyle(fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   );
