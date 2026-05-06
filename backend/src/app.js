@@ -4,6 +4,7 @@ const helmet = require('helmet')
 const morgan = require('morgan')
 
 const authRoutes = require('./routes/auth.routes')
+const profileRoutes = require('./routes/profile.routes')
 
 const app = express()
 
@@ -16,7 +17,6 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(morgan('dev'))
 
-// Health check
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'success',
@@ -25,10 +25,9 @@ app.get('/health', (req, res) => {
   })
 })
 
-// Routes
 app.use('/api/auth', authRoutes)
+app.use('/api/profile', profileRoutes)
 
-// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     status: 'error',
@@ -36,7 +35,6 @@ app.use((req, res) => {
   })
 })
 
-// Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack)
   res.status(err.status || 500).json({
