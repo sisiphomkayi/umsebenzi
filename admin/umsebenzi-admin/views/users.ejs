@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>All Users - Umsebenzi Admin</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; display: flex; }
+    .sidebar { width: 240px; background: #0D4A28; min-height: 100vh; padding: 20px 0; position: fixed; }
+    .sidebar .logo { text-align: center; padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar .logo h2 { color: white; font-size: 18px; letter-spacing: 3px; }
+    .sidebar a { display: block; padding: 14px 24px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 14px; }
+    .sidebar a:hover, .sidebar a.active { background: rgba(255,255,255,0.1); color: white; border-left: 3px solid #F5A623; }
+    .sidebar a span { margin-right: 10px; }
+    .main { margin-left: 240px; padding: 30px; width: calc(100% - 240px); }
+    h1 { font-size: 24px; color: #1A1A1A; margin-bottom: 24px; }
+    table { width: 100%; background: white; border-radius: 16px; border-collapse: collapse; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+    th { background: #1A6B3C; color: white; padding: 14px 16px; text-align: left; font-size: 13px; }
+    td { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; font-size: 13px; color: #333; }
+    tr:last-child td { border-bottom: none; }
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge.approved { background: #d4edda; color: #155724; }
+    .badge.pending { background: #fff3cd; color: #856404; }
+    .badge.suspended { background: #f8d7da; color: #721c24; }
+    .btn { padding: 6px 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
+    .btn-suspend { background: #dc3545; color: white; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="logo"><h2>UMSEBENZI</h2></div>
+    <a href="/dashboard"><span>📊</span>Dashboard</a>
+    <a href="/pending"><span>⏳</span>Pending Approvals</a>
+    <a href="/users" class="active"><span>👥</span>All Users</a>
+    <a href="/logout"><span>🚪</span>Logout</a>
+  </div>
+  <div class="main">
+    <h1>👥 All Users (<%= users.length %>)</h1>
+    <table>
+      <tr>
+        <th>Name</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th>Registered</th>
+        <th>Action</th>
+      </tr>
+      <% users.forEach(user => { %>
+      <tr>
+        <td><strong><%= user.first_name %> <%= user.last_name %></strong></td>
+        <td>@<%= user.username %></td>
+        <td><%= user.email %></td>
+        <td><%= user.user_type.toUpperCase() %></td>
+        <td><span class="badge <%= user.status %>"><%= user.status.toUpperCase() %></span></td>
+        <td><%= new Date(user.created_at).toLocaleDateString() %></td>
+        <td>
+          <% if (user.status !== 'suspended') { %>
+          <form method="POST" action="/users/<%= user.id %>/suspend" style="display:inline">
+            <button class="btn btn-suspend">🚫 Suspend</button>
+          </form>
+          <% } %>
+        </td>
+      </tr>
+      <% }) %>
+    </table>
+  </div>
+</body>
+</html>

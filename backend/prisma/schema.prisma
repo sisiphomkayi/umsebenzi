@@ -1,0 +1,324 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  url      = env("DATABASE_URL")
+  provider = "postgresql"
+
+}
+
+enum Role {
+  JOB_SEEKER
+  CLIENT
+  COMPANY
+  LOGISTICS
+  ADMIN
+  FINANCE
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  REGISTERED
+  PENDING_FINGERPRINT
+  FINGERPRINT_DONE
+  APPROVED
+  DECLINED
+  SUSPENDED
+  BLOCKED
+}
+
+enum JobStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  AWAITING_CONFIRMATION
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum PaymentStatus {
+  PENDING
+  IN_ESCROW
+  RELEASED
+  REFUNDED
+  CANCELLED
+}
+
+model User {
+  id                String     @id @default(uuid())
+  username          String     @unique
+  email             String     @unique
+  phone             String?
+  password          String
+  role              Role
+  status            UserStatus @default(REGISTERED)
+  referralCode      String?    @unique
+  referredBy        String?
+  isEmailVerified   Boolean    @default(false)
+  otpCode           String?
+  otpExpiry         DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  profile           Profile?
+  jobsAsSeeker      Job[]      @relation("SeekerJobs")
+  jobsAsClient      Job[]      @relation("ClientJobs")
+  wallet            Wallet?
+  sentMessages      Message[]  @relation("SentMessages")
+  notifications     Notification[]
+  reviewsGiven      Review[]   @relation("ReviewsGiven")
+  reviewsReceived   Review[]   @relation("ReviewsReceived")
+  reports           Report[]   @relation("ReportsSubmitted")
+  declaration       CriminalDeclaration?
+}
+
+model Profile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  firstName         String
+  lastName          String
+  idNumber          String?
+  passportNumber    String?
+  dateOfBirth       DateTime?
+  gender            String?
+  address           String?
+  city              String?
+  province          String?
+  country           String   @default("South Africa")
+  profilePhoto      String?
+  bio               String?
+  skills            String[]
+  experience        String?
+  hasDriversLicense Boolean  @default(false)
+  driversLicenseUrl String?
+  idDocumentUrl     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User     @relation(fields: [userId], references: [id])
+  education         Education[]
+  qualifications    Qualification[]
+}
+
+model Education {
+  id            String   @id @default(uuid())
+  profileId     String
+  institution   String
+  qualification String
+  fieldOfStudy  String?
+  startYear     Int
+  endYear       Int?
+  isCompleted   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  profile       Profile  @relation(fields: [profileId], references: [id])
+}
+
+model Qualification {
+  id            String   @id @default(uuid())
+  profileId     String
+  name          String
+  issuedBy      String
+  issueDate     DateTime?
+  documentUrl   String?
+  isVerified    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  profile       Profile  @relation(fields: [profileId], references: [id])
+}
+
+model CriminalDeclaration {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  hasCriminalRecord Boolean
+  hasPendingCases   Boolean
+  offenceTypes      String[]
+  details           String?
+  declarationSigned Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  user              User     @relation(fields: [userId], references: [id])
+}
+
+model Company {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  companyName        String
+  registrationNumber String   @unique
+  industry           String?
+  description        String?
+  website            String?
+  logoUrl            String?
+  bannerUrl          String?
+  employeeCount      String?
+  isVerified         Boolean  @default(false)
+  documentsUrl       String[]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  jobs               Job[]
+}
+
+model Job {
+  id                String    @id @default(uuid())
+  title             String
+  description       String
+  category          String
+  location          String
+  budget            Float
+  status            JobStatus @default(OPEN)
+  seekerId          String?
+  clientId          String
+  companyId         String?
+  requiresTransport Boolean   @default(false)
+  transportFee      Float?
+  startDate         DateTime?
+  endDate           DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  seeker            User?     @relation("SeekerJobs", fields: [seekerId], references: [id])
+  client            User      @relation("ClientJobs", fields: [clientId], references: [id])
+  company           Company?  @relation(fields: [companyId], references: [id])
+  payment           Payment?
+  contract          Contract?
+  reviews           Review[]
+  transport         Transport?
+}
+
+model Contract {
+  id            String    @id @default(uuid())
+  jobId         String    @unique
+  terms         String
+  duration      String
+  amount        Float
+  clientSigned  Boolean   @default(false)
+  seekerSigned  Boolean   @default(false)
+  signedAt      DateTime?
+  createdAt     DateTime  @default(now())
+
+  job           Job       @relation(fields: [jobId], references: [id])
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  jobId         String        @unique
+  amount        Float
+  commission    Float
+  transportFee  Float?
+  tip           Float?
+  status        PaymentStatus @default(PENDING)
+  paymentMethod String?
+  paidAt        DateTime?
+  releasedAt    DateTime?
+  createdAt     DateTime      @default(now())
+
+  job           Job           @relation(fields: [jobId], references: [id])
+}
+
+model Wallet {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  balance        Float    @default(0)
+  pendingBalance Float    @default(0)
+  totalEarned    Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User     @relation(fields: [userId], references: [id])
+  transactions   Transaction[]
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  walletId    String
+  amount      Float
+  type        String
+  description String?
+  createdAt   DateTime @default(now())
+
+  wallet      Wallet   @relation(fields: [walletId], references: [id])
+}
+
+model Transport {
+  id          String    @id @default(uuid())
+  jobId       String    @unique
+  driverId    String?
+  fee         Float
+  status      String    @default("PENDING")
+  pickedUpAt  DateTime?
+  arrivedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  job         Job       @relation(fields: [jobId], references: [id])
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  senderId    String
+  receiverId  String
+  content     String?
+  fileUrl     String?
+  messageType String   @default("TEXT")
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  type      String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  jobId      String
+  reviewerId String
+  revieweeId String
+  rating     Float
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  job        Job      @relation(fields: [jobId], references: [id])
+  reviewer   User     @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  reviewee   User     @relation("ReviewsReceived", fields: [revieweeId], references: [id])
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  reporterId  String
+  reportedId  String
+  reason      String
+  details     String?
+  status      String   @default("PENDING")
+  actionTaken String?
+  createdAt   DateTime @default(now())
+
+  reporter    User     @relation("ReportsSubmitted", fields: [reporterId], references: [id])
+}
+
+model JobPost {
+  id           String   @id @default(uuid())
+  title        String
+  company      String
+  location     String
+  description  String
+  requirements String?
+  salary       String?
+  jobType      String
+  postedById   String
+  openDate     DateTime
+  closeDate    DateTime
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
