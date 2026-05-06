@@ -5,6 +5,7 @@ const morgan = require('morgan')
 
 const authRoutes = require('./routes/auth.routes')
 const profileRoutes = require('./routes/profile.routes')
+const adminRoutes = require('./routes/admin.routes')
 
 const app = express()
 
@@ -27,6 +28,7 @@ app.get('/health', (req, res) => {
 
 app.use('/api/auth', authRoutes)
 app.use('/api/profile', profileRoutes)
+app.use('/api/admin', adminRoutes)
 
 app.use((req, res) => {
   res.status(404).json({
