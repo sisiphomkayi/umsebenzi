@@ -2,10 +2,12 @@ const express = require('express')
 const cors = require('cors')
 const helmet = require('helmet')
 const morgan = require('morgan')
+const { deactivateExpiredPosts } = require('./controllers/jobboard.controller')
 
 const authRoutes = require('./routes/auth.routes')
 const profileRoutes = require('./routes/profile.routes')
 const adminRoutes = require('./routes/admin.routes')
+const jobboardRoutes = require('./routes/jobboard.routes')
 
 const app = express()
 
@@ -18,6 +20,8 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(morgan('dev'))
 
+setInterval(deactivateExpiredPosts, 60 * 60 * 1000)
+
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'success',
@@ -29,6 +33,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/profile', profileRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/jobs', jobboardRoutes)
 
 app.use((req, res) => {
   res.status(404).json({
