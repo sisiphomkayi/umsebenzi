@@ -10,6 +10,7 @@ const adminRoutes = require('./routes/admin.routes')
 const jobboardRoutes = require('./routes/jobboard.routes')
 const gigRoutes = require('./routes/gig.routes')
 const notificationRoutes = require('./routes/notification.routes')
+const reviewRoutes = require('./routes/review.routes')
 
 const app = express()
 
@@ -38,6 +39,7 @@ app.use('/api/admin', adminRoutes)
 app.use('/api/jobs', jobboardRoutes)
 app.use('/api/gigs', gigRoutes)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/reviews', reviewRoutes)
 
 app.use((req, res) => {
   res.status(404).json({
